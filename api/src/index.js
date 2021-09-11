@@ -36,8 +36,43 @@ app.post('/matricula', async(req,resp) => {
     }
 })
 
+app.put('/matricula/:id', async(req,resp) => {
+    try{
+        let {nome, chamada, curso, turma} = req.body;
+        let{id} = req.params;
+        let up = await
+            db.tb_matricula.update(
+                {
+                    nm_aluno: nome,
+                    nr_chamada: chamada,
+                    nm_curso: curso,
+                    nm_turma: turma
+                },
+                {
+                    where:{id_matricula: id}
+                }
+            )
+        resp.sendStatus(200);
+    } catch(e){
+        resp.send({erro: e.toString()})
+    }
+})
+
+app.delete('/matricula/:id', async(req,resp) => {
+    try{
+        let{id} = req.params;
+        let de = await
+            db.tb_matricula.destroy(
+                {
+                    where: {id_matricula: id}
+                }
+            )
+        resp.sendStatus(200);
+    } catch(e){
+        resp.send({erro: e.toString()})
+    }
+})
 
 
 app.listen(process.env.PORT,
-
     x => console.log(`Server up at port ${process.env.PORT}`))
