@@ -23,7 +23,20 @@ app.get('/matricula', async(req,resp) => {
 app.post('/matricula', async(req,resp) => {
     try{
         let { nome, chamada, curso, turma} = req.body;
-        let ins = await
+        if(nome == '' || chamada <= 0 || curso == '' || turma == ''){
+            resp.send({erro: 'Campo não inserido ou caracter invalido'} )}
+        if(isNaN(Number(chamada))){
+            resp.send({erro: 'Campo não inserido ou caracter invalido'} )
+        }
+
+        let s = await db.tb_matricula.findOne({ where: { nm_turma: turma, nr_chamada: chamada} });
+        if (s != null){return resp.send({ erro: 'Aluno ja Cadastrado' }); }
+
+        if(Math.sign(chamada) == Math.sign(-1)){
+            resp.send({erro: 'Campo não inserido ou caracter invalido'} )
+        }
+        else{
+            let ins = await
             db.tb_matricula.create({
                 nm_aluno: nome,
                 nr_chamada: chamada,
@@ -31,8 +44,9 @@ app.post('/matricula', async(req,resp) => {
                 nm_turma: turma
             });
         resp.send(ins);
+        }
     } catch(e){
-        resp.send({erro: e.toString()})
+        resp.send('erro')
     }
 })
 
@@ -40,7 +54,15 @@ app.put('/matricula/:id', async(req,resp) => {
     try{
         let {nome, chamada, curso, turma} = req.body;
         let{id} = req.params;
-        let up = await
+        if(nome == '' || chamada <= 0 || curso == '' || turma == ''){
+            resp.send({erro: 'Campo não inserido ou caracter invalido'} )}
+        if(isNaN(Number(chamada))){
+            resp.send({erro: 'Campo não inserido ou caracter invalido'} )
+        }
+        if(Math.sign(chamada) == Math.sign(-1)){
+            resp.send({erro: 'Campo não inserido ou caracter invalido'} )
+        }else{
+            let up = await
             db.tb_matricula.update(
                 {
                     nm_aluno: nome,
@@ -53,6 +75,8 @@ app.put('/matricula/:id', async(req,resp) => {
                 }
             )
         resp.sendStatus(200);
+        }
+        
     } catch(e){
         resp.send({erro: e.toString()})
     }

@@ -3,7 +3,16 @@ import Cabecalho from '../../components/cabecalho'
 import Menu from '../../components/menu'
 import edit from '../../assets/images/edit.svg'
 import trash from '../../assets/images/trash.svg'
-import { useEffect, useState } from 'react'
+
+import LoadingBar from 'react-top-loading-bar'
+
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
+import { confirmAlert} from 'react-confirm-alert'
+import 'react-confirm-alert/src/react-confirm-alert.css'
+
+import { useEffect, useState , useRef } from 'react'
 import { Container, Conteudo } from './styled'
 
 import Api from '../../service/api'
@@ -16,20 +25,28 @@ export default function Index() {
     const [curso, setCurso] = useState('')
     const [turma, setTurma] = useState('')
     const [idAlterar,setIdAlterar] = useState(0)
+    const loading = useRef(null)
     
     async function listar(){
         let r = await api.listar();
         console.log(r)
         setAlunos(r)
+        loading.current.complete();
     }
 
     async function inserir(){
         if(idAlterar == 0){
-            let r = await api.inserir(nome,chamada,curso,turma);
-            alert('aluno inserirdo')
+            let r = await api.inserir(nome,chamada,curso,turma)
+            if(r.erro)
+                toast.error(`${r.erro}`)
+            else
+                toast.success('aluno inserirdo')
         } else{
             let r = await api.alterar(idAlterar,nome,chamada,curso,turma);
-            alert('aluno alterado')
+            if(r.erro)
+                toast.error(`${r.erro}`)
+            else
+                toast.success('aluno alterado');
         }
         limparCampos()
         listar()
@@ -44,10 +61,26 @@ export default function Index() {
     }
 
     async function remover(id){
-        let r = await api.remover(id)
-        alert('aluno removido')
-        listar()
-        console.log(r)
+        confirmAlert({
+            title: 'Remover aluno',
+            message: `Tem certeza de que deseja remover o aluno ${id}`,
+            buttons:[
+                {
+                    label: 'Sim',
+                    onClick: async () => {
+                        let r = await api.remover(id)
+                        if(r.erro)
+                            toast.error(`${r.erro}`)
+                        else
+                            toast.warn('aluno removido')
+                        listar()
+                    }
+                  },
+                  {
+                    label: 'Não',
+                  }
+            ]
+        })
     }
 
     async function editar(item) {
@@ -64,6 +97,8 @@ export default function Index() {
 
     return (
         <Container>
+            <ToastContainer/>
+            <LoadingBar color='purple' ref={loading}/>
             <Menu />
             <Conteudo>
                 <Cabecalho />
@@ -124,7 +159,7 @@ export default function Index() {
                                 {alunos.map((item, i) =>
                                     <tr className={i % 2 == 0 ? "linha-alternada" : ""}>
                                         <td>{item.id_matricula}</td>
-                                        <td> {item.nm_aluno}</td>
+                                        <td> {item.nm_aluno != null && item.nm_aluno.length >= 14 ? item.nm_aluno.substring(0,14) + "..." : item.nm_aluno}</td>
                                         <td> {item.nr_chamada}</td>
                                         <td> {item.nm_turma}</td>
                                         <td> {item.nm_curso}</td>

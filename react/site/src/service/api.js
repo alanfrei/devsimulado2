@@ -6,8 +6,8 @@ const api = axios.create({
 
 export default class Api{
     async listar(){
-        let g = api.get('/matricula');
-        return (await g).data;
+        let r = api.get('/matricula');
+        return (await r).data;
     }
 
     async inserir(nome, chamada, curso, turma){
